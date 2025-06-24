@@ -1,11 +1,4 @@
 """Tool that calls Selenium."""
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import StaleElementReferenceException
-
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 
 import json
 import re
@@ -16,17 +9,22 @@ from typing import Any, Dict, List, Optional
 import validators
 from bs4 import BeautifulSoup
 from pydantic import BaseModel, Field
+from selenium.common.exceptions import StaleElementReferenceException
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from chromegpt.tools.logging_actionchains import LoggingActionChains
-from chromegpt.tools.logging_webdriver import LoggingWebDriver
+from chromegpt.tools.logging_webdriver import (
+    LoggingWebDriver,
+    clear_selenium_commands_log,
+)
 from chromegpt.tools.selenium_code_generator import (
     generate_selenium_code,
     wipe_selenium_code,
 )
-from chromegpt.tools.logging_webdriver import (
-    clear_selenium_commands_log,
-)
-
 from chromegpt.tools.utils import (
     find_parent_element_text,
     get_all_text_elements,
@@ -68,7 +66,6 @@ class SeleniumWrapper:
         wipe_selenium_code()
         generate_selenium_code("selenium_commands.log", "selenium_code.py")
 
-
     def previous_webpage(self) -> str:
         """Go back in browser history."""
         self.driver.back()
@@ -88,8 +85,7 @@ class SeleniumWrapper:
         results = self._get_google_search_results()
         return (
             "Which url would you like to goto? Provide the full url starting with http"
-            " or https to goto: "
-            + json.dumps(results)
+            " or https to goto: " + json.dumps(results)
         )
 
     def _get_google_search_results(self) -> List[Dict[str, Any]]:
@@ -128,9 +124,10 @@ class SeleniumWrapper:
                 )
 
         # Let driver wait for website to load
-        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+        WebDriverWait(self.driver, 10).until(
+            EC.presence_of_element_located((By.TAG_NAME, "body"))
+        )
         time.sleep(5)
-
 
         try:
             # Extract main content
@@ -149,8 +146,8 @@ class SeleniumWrapper:
         form_fields = self._find_form_fields()
         if form_fields:
             output += (
-                "You can input text in these fields using fill_form function: "
-                + form_fields
+                "You can input text in these fields using exec_code_generation "
+                "tool to send keystrokes: " + form_fields
             )
         return output
 
@@ -243,7 +240,9 @@ class SeleniumWrapper:
                 self.driver.get(url)
                 # Let driver wait for website to load
                 time.sleep(5)
-                WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+                WebDriverWait(self.driver, 10).until(
+                    EC.presence_of_element_located((By.TAG_NAME, "body"))
+                )
             except WebDriverException as e:
                 return f"Error loading url {url}, message: {e.msg}"
 
@@ -268,8 +267,6 @@ class SeleniumWrapper:
             pass
 
         return str(fields)
-
-
 
     def fill_out_form(self, form_input: Optional[str] = None, **kwargs: Any) -> str:
         """fill out form by form field name and input name"""
@@ -299,10 +296,17 @@ class SeleniumWrapper:
                     # Use explicit wait to find the element
                     time.sleep(1)
                     element = WebDriverWait(self.driver, 10).until(
-                        EC.presence_of_element_located((By.XPATH, f"//textarea[@name='{key}'] | //input[@name='{key}']"))
+                        EC.presence_of_element_located(
+                            (
+                                By.XPATH,
+                                f"//textarea[@name='{key}'] | //input[@name='{key}']",
+                            )
+                        )
                     )
                     # Scroll the element into view
-                    self.driver.execute_script("arguments[0].scrollIntoView();", element)
+                    self.driver.execute_script(
+                        "arguments[0].scrollIntoView();", element
+                    )
 
                     # Clear the input field
                     element.send_keys(Keys.CONTROL + "a")
@@ -321,7 +325,9 @@ class SeleniumWrapper:
                     continue
                 except WebDriverException as e:
                     print(e)
-                return f"Error filling out form with input {form_input}, message: {e.msg}"
+                return (
+                    f"Error filling out form with input {form_input}, message: {e.msg}"
+                )
 
         if not filled_element:
             return (
@@ -342,7 +348,6 @@ class SeleniumWrapper:
                 " website did not change after filling out form."
             )
 
-
     def scroll(self, direction: str) -> str:
         # Get the height of the current window
         window_height = self.driver.execute_script("return window.innerHeight")
@@ -352,6 +357,24 @@ class SeleniumWrapper:
         # Scroll by 1 window height
         self.driver.execute_script(f"window.scrollBy(0, {window_height})")
 
+        return self.describe_website()
+
+    def exec_code_generation(self, code: str) -> str:
+        """Execute raw Python code with access to the current driver."""
+        local_env = {
+            "driver": self.driver,
+            "By": By,
+            "Keys": Keys,
+            "ActionChains": LoggingActionChains,
+            "WebDriverWait": WebDriverWait,
+            "EC": EC,
+        }
+        try:
+            with open("selenium_commands.log", "a") as f:
+                f.write(f"Exec code: {code}\n")
+            exec(code, {}, local_env)
+        except Exception as e:
+            return f"Error executing code: {e}"
         return self.describe_website()
 
     def _get_website_main_content(self) -> str:
@@ -455,3 +478,9 @@ class ScrollInput(BaseModel):
     direction: str = Field(
         default="down", description="direction to scroll, either 'up' or 'down'"
     )
+
+
+class ExecCodeInput(BaseModel):
+    """Input model for exec_code_generation tool."""
+
+    code: str = Field(..., description="Python code to execute")
