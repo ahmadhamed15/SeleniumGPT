@@ -6,8 +6,6 @@ from typing import List, Optional
 from selenium.webdriver.chrome.webdriver import WebDriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
-from selenium import webdriver
-
 from unidecode import unidecode
 
 
@@ -89,21 +87,28 @@ def element_completely_viewable(driver: WebDriver, elem: WebElement) -> bool:
 
 
 def find_parent_element_text(elem: WebElement, prettify: bool = True) -> str:
-    """Find the text up to third order parent element."""
-    parent_element_text = elem.text.strip()
-    if parent_element_text:
-        return (
-            parent_element_text if not prettify else prettify_text(parent_element_text)
-        )
-    elements = elem.find_elements(By.XPATH, "./ancestor::*[position() <= 3]")
-    for parent_element in elements:
-        parent_element_text = parent_element.text.strip()
-        if parent_element_text:
-            return (
-                parent_element_text
-                if not prettify
-                else prettify_text(parent_element_text)
-            )
+    """Find visible text or aria-label/title up to the third parent."""
+
+    def _extract(el: WebElement) -> str:
+        txt = el.text.strip()
+        if not txt:
+            for attr in ["aria-label", "title", "alt"]:
+                attr_val = el.get_attribute(attr)
+                if attr_val and attr_val.strip():
+                    txt = attr_val.strip()
+                    break
+        if prettify and txt:
+            return prettify_text(txt)
+        return txt
+
+    text = _extract(elem)
+    if text:
+        return text
+    parents = elem.find_elements(By.XPATH, "./ancestor::*[position() <= 3]")
+    for parent in parents:
+        text = _extract(parent)
+        if text:
+            return text
     return ""
 
 

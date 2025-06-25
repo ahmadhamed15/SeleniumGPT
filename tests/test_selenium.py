@@ -49,3 +49,11 @@ def test_google_search(client: SeleniumWrapper) -> None:
     res = client.google_search("hello world")
     assert "hello" in res
     assert "Which url would you like to goto" in res
+
+
+def test_aria_label_link_detected(client: SeleniumWrapper) -> None:
+    """Interactable elements should include aria-label text."""
+    html = "<html><body><a href='/login' aria-label='Account'></a></body></html>"
+    client.driver.get("data:text/html," + html)
+    desc = client.describe_website()
+    assert "account" in desc

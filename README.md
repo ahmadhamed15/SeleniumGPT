@@ -79,3 +79,5 @@ Selenium `driver` object. Example:
 ```
 
 The environment automatically defines `driver`, `By`, `Keys`, `WebDriverWait`, `ActionChains`, and `expected_conditions as EC` for use in the code snippet.
+
+JavaScript globals such as `document` are **not** available, so use Selenium methods (e.g. `driver.find_element`) rather than `document.querySelector`.
