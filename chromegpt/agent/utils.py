@@ -9,7 +9,6 @@ from langchain.vectorstores import FAISS
 from chromegpt.tools.selenium import (
     DescribeWebsiteInput,
     ExecCodeInput,
-    FindFormInput,
     GoogleSearchInput,
     SeleniumWrapper,
 )
@@ -24,15 +23,6 @@ def get_agent_tools() -> List[BaseTool]:
             func=selenium.describe_website,
             description="useful for when you need visit a link or a website",
             args_schema=DescribeWebsiteInput,
-        ),
-        Tool(
-            name="find_form",
-            func=selenium.find_form_inputs,
-            description=(
-                "useful for when you need to find out input forms given a url. Returns"
-                " the input fields to fill out"
-            ),
-            args_schema=FindFormInput,
         ),
         Tool(
             name="exec_code_generation",
