@@ -1,7 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
+
 from chromegpt.tools.logging_webelement import LoggingWebElement
+
 
 class LoggingWebDriver(webdriver.Chrome):
     def __init__(self, *args, **kwargs):
@@ -18,7 +20,10 @@ class LoggingWebDriver(webdriver.Chrome):
 
     def find_elements(self, by, value):
         elements = super().find_elements(by, value)
-        return [LoggingWebElement(element._parent, element._id, by, value) for element in elements]
+        return [
+            LoggingWebElement(element._parent, element._id, by, value)
+            for element in elements
+        ]
 
     # ------------------------------------------------------------------
     # Compatibility wrappers for older Selenium find_element_by_* syntax
@@ -61,6 +66,17 @@ class LoggingWebDriver(webdriver.Chrome):
     def find_elements_by_link_text(self, text: str):
         return self.find_elements(By.LINK_TEXT, text)
 
+    def find_element_by_partial_link_text(self, text: str) -> WebElement:
+        return self.find_element(By.PARTIAL_LINK_TEXT, text)
+
+    def find_elements_by_partial_link_text(self, text: str):
+        return self.find_elements(By.PARTIAL_LINK_TEXT, text)
+
+    def find_element_by_name(self, name: str) -> WebElement:
+        return self.find_element(By.NAME, name)
+
+    def find_elements_by_name(self, name: str):
+        return self.find_elements(By.NAME, name)
 
 
 def clear_selenium_commands_log():

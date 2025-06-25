@@ -66,3 +66,13 @@ Options:
   --help                          Show this message and exit.
 ```
 
+
+## exec_code_generation Tool
+
+The agent now exposes a single action tool named `exec_code_generation` for all interactions with web pages. Provide raw Python code that uses the Selenium `driver` object. Example:
+
+```json
+{"action": "exec_code_generation", "action_input": "driver.find_element(By.NAME, 'q').send_keys('hello', Keys.ENTER)"}
+```
+
+The environment automatically defines `driver`, `By`, `Keys`, `WebDriverWait`, `ActionChains`, and `expected_conditions as EC` for use in the code snippet.

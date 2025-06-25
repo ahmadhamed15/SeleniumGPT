@@ -9,7 +9,10 @@ from typing import Any, Dict, List, Optional
 import validators
 from bs4 import BeautifulSoup
 from pydantic import BaseModel, Field
-from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import (
+    StaleElementReferenceException,
+    WebDriverException,
+)
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys

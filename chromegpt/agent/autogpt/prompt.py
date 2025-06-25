@@ -27,7 +27,8 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
             "If you have completed all your tasks, make sure to "
             'use the "finish" command.\n'
             "Use the exec_code_generation tool for any actions such as clicking"
-            ", scrolling or filling forms."
+            ", scrolling or filling forms. Provide raw Python code that uses the"
+            " `driver` object from Selenium."
         )
         # Construct full prompt
         full_prompt = (
