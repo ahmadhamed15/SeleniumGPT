@@ -25,7 +25,11 @@ class AutoGPTPrompt(BaseChatPromptTemplate, BaseModel):
             "Play to your strengths as an LLM and pursue simple "
             "strategies with no legal complications.\n"
             "If you have completed all your tasks, make sure to "
-            'use the "finish" command.'
+            'use the "finish" command.\n'
+            "Use the exec_code_generation tool for any actions such as clicking"
+            ", scrolling or filling forms. Provide raw Python code that uses the"
+            " `driver` object from Selenium. JavaScript globals like 'document' are"
+            " not available."
         )
         # Construct full prompt
         full_prompt = (

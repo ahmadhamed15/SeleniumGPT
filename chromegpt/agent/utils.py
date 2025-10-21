@@ -7,12 +7,9 @@ from langchain.tools.base import BaseTool
 from langchain.vectorstores import FAISS
 
 from chromegpt.tools.selenium import (
-    ClickButtonInput,
     DescribeWebsiteInput,
-    FillOutFormInput,
-    FindFormInput,
+    ExecCodeInput,
     GoogleSearchInput,
-    ScrollInput,
     SeleniumWrapper,
 )
 
@@ -28,36 +25,12 @@ def get_agent_tools() -> List[BaseTool]:
             args_schema=DescribeWebsiteInput,
         ),
         Tool(
-            name="click",
-            func=selenium.click_button_by_text,
-            description="useful for when you need to click a button/link",
-            args_schema=ClickButtonInput,
-        ),
-        Tool(
-            name="find_form",
-            func=selenium.find_form_inputs,
+            name="exec_code_generation",
+            func=selenium.exec_code_generation,
             description=(
-                "useful for when you need to find out input forms given a url. Returns"
-                " the input fields to fill out"
+                "Execute raw Python code to interact with the currently open website"
             ),
-            args_schema=FindFormInput,
-        ),
-        Tool(
-            name="fill_form",
-            func=selenium.fill_out_form,  # type: ignore
-            description=(
-                "useful for when you need to fill out a form on the current website."
-                " Input should be a json formatted string"
-            ),
-            args_schema=FillOutFormInput,
-        ),
-        Tool(
-            name="scroll",
-            func=selenium.scroll,
-            description=(
-                "useful for when you need to scroll up or down on the current website"
-            ),
-            args_schema=ScrollInput,
+            args_schema=ExecCodeInput,
         ),
         Tool(
             name="google_search",

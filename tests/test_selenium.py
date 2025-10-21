@@ -21,7 +21,9 @@ def test_click(client: SeleniumWrapper) -> None:
     """Test that SeleniumWrapper click works"""
 
     client.describe_website("https://example.com")
-    output = client.click_button_by_text('link with title "More information..."')
+    output = client.exec_code_generation(
+        "driver.find_element(By.CSS_SELECTOR, 'a').click()"
+    )
     assert "Clicked interactable element and the website changed" in output
 
 
@@ -36,7 +38,9 @@ def test_google_fill(client: SeleniumWrapper) -> None:
     """Test that SeleniumWrapper can fill input form"""
 
     client.find_form_inputs("https://google.com")
-    output = client.fill_out_form(q="hello world")
+    output = client.exec_code_generation(
+        "driver.find_element(By.NAME, 'q').send_keys('hello world', Keys.ENTER)"
+    )
     assert "website changed after filling out form" in output
 
 
@@ -45,3 +49,11 @@ def test_google_search(client: SeleniumWrapper) -> None:
     res = client.google_search("hello world")
     assert "hello" in res
     assert "Which url would you like to goto" in res
+
+
+def test_aria_label_link_detected(client: SeleniumWrapper) -> None:
+    """Interactable elements should include aria-label text."""
+    html = "<html><body><a href='/login' aria-label='Account'></a></body></html>"
+    client.driver.get("data:text/html," + html)
+    desc = client.describe_website()
+    assert "account" in desc

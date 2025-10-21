@@ -66,3 +66,18 @@ Options:
   --help                          Show this message and exit.
 ```
 
+
+## exec_code_generation Tool
+
+All interactive browser actions are performed via a single tool named `exec_code_generation`.
+Navigation helpers like `goto` (to load a URL) and `google_search` remain available, but clicking buttons,
+filling forms and scrolling should be done with this tool. Provide raw Python code that uses the
+Selenium `driver` object. Example:
+
+```json
+{"action": "exec_code_generation", "action_input": "driver.find_element(By.NAME, 'q').send_keys('hello', Keys.ENTER)"}
+```
+
+The environment automatically defines `driver`, `By`, `Keys`, `WebDriverWait`, `ActionChains`, and `expected_conditions as EC` for use in the code snippet.
+
+JavaScript globals such as `document` are **not** available, so use Selenium methods (e.g. `driver.find_element`) rather than `document.querySelector`.
